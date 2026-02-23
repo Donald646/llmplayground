@@ -1,0 +1,69 @@
+---
+session: general
+date: 2026-02-12
+status: partial
+outcome: PARTIAL_PLUS
+---
+
+goal: Add Tavily web search with inline citations to the AI chat orchestrator
+now: Restructure architecture — move web search to orchestrator level, convert researchAgent to deep research
+
+done_this_session:
+  - task: Installed @tavily/ai-sdk and wired up Tavily search to the research agent
+    files: [app/api/chat/route.ts, package.json, .env.local]
+  - task: Built inline citation system using InlineCitation AI Elements component
+    files: [app/page.tsx]
+  - task: Implemented CitedMessageResponse component — renders markdown via MessageResponse with custom `components.a` override to inject InlineCitation pills for citation links
+    files: [app/page.tsx]
+  - task: Built source extraction pipeline — backend extracts Tavily results from generateText steps (toolResult.output.results), returns as sources alongside text
+    files: [app/api/chat/route.ts]
+  - task: Built name-matching system for citations — handles both [1] numeric and [IBM]/[YouTube] named citations via buildSourceNameMap
+    files: [app/page.tsx]
+  - task: Made citation pills clickable — wrapped in <a> with target="_blank"
+    files: [app/page.tsx]
+
+blockers:
+  - Orchestrator (Gemini) frequently does not produce synthesis text after tool call — just shows research agent card with no main response
+  - Research agent sometimes uses full article titles as citations like [What is AI? - Definition and How it Works] which are too long for name matching
+  - Model citation format is inconsistent despite strong prompting (numbered vs named vs grouped)
+
+questions:
+  - Should web search be moved to the orchestrator level (as a direct tool) instead of nested inside the research agent? This would let the orchestrator search quickly and the research agent focus on deep analysis
+  - User suggested renaming researchAgent to "deep research" and giving orchestrator direct Tavily access for quick searches
+  - Should we use Gemini's built-in grounding/search instead of Tavily for the orchestrator's quick searches?
+
+decisions:
+  - tavily_over_alternatives: "Chose Tavily for web search — purpose-built for AI agents, @tavily/ai-sdk integrates directly with Vercel AI SDK"
+  - citation_via_markdown_links: "Convert [N] to [N](#cite-N) markdown links, override <a> component in MessageResponse to render InlineCitation — preserves full Streamdown markdown rendering"
+  - toolChoice_required: "Added toolChoice: required to force research agent to always call Tavily, preventing made-up citation numbers"
+
+findings:
+  - ai_sdk_toolresult_uses_output: "AI SDK's StepResult.toolResults items use `output` property (not `result`) for the tool's return value — this caused a silent bug where sources were always empty"
+  - tavily_response_structure: "TavilySearchResponse has { query, results: [...], responseTime, images, answer } — results array contains { title, url, content, score }"
+  - ui_message_parts_structure: "Tool parts have type `tool-${toolName}` (e.g. tool-researchAgent), state `output-available`, and output contains the tool's return value"
+  - streamdown_components_prop: "MessageResponse/Streamdown accepts `components` prop to override element rendering — used to intercept <a> tags for citation links"
+  - model_citation_inconsistency: "Gemini 2.5 Flash is highly inconsistent with citation format despite explicit prompting — uses [1], [IBM], [Full Article Title], [1, 2, 3] grouped, or drops citations entirely"
+
+worked:
+  - "prepareCitedMarkdown converting [N] to markdown links [N](#cite-N) — clean integration with Streamdown"
+  - "buildSourceNameMap matching hostnames, short names, and title suffixes against citation text"
+  - "toolChoice: required forcing Tavily usage in research agent"
+  - "getMessageSources extracting sources from message tool parts on the frontend"
+
+failed:
+  - "Initial approach of splitting text on [N] and rendering spans — lost all markdown formatting"
+  - "Accessing toolResult.result instead of toolResult.output — silent bug, sources always empty"
+  - "Relying on prompting alone to make model use Tavily — model often skipped it"
+  - "Orchestrator frequently stops after tool call without producing synthesis text despite explicit prompting"
+
+next:
+  - "ARCHITECTURE CHANGE: Move Tavily webSearch tool to the orchestrator level so it can search directly for quick responses without going through researchAgent"
+  - "Rename researchAgent to deepResearchAgent — for in-depth multi-search analysis"
+  - "The orchestrator should have: webSearch (Tavily, quick), deepResearchAgent (multi-step), codeAgent, creativeAgent"
+  - "Consider using stopWhen or a custom stop condition so orchestrator always generates text after tool calls"
+  - "Handle full article title citations like [What is AI? - Definition] by adding full title matching to buildSourceNameMap"
+  - "Test with Claude Sonnet 4.5 as orchestrator model — may follow citation instructions more reliably than Gemini"
+
+files:
+  created: []
+  modified: [app/api/chat/route.ts, app/page.tsx, .env.local, package.json, package-lock.json]

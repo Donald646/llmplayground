@@ -1,0 +1,75 @@
+---
+session: general
+date: 2026-02-11
+status: complete
+outcome: SUCCEEDED
+---
+
+goal: Full arena game mechanics overhaul - terrain, combat, actions, passives, power-ups
+now: Test the game in browser, verify all mechanics work end-to-end, fix any runtime issues
+test: "curl -s -X POST http://localhost:3000/api/games/arena/turn -H 'Content-Type: application/json' -d '{...}'"
+
+done_this_session:
+  - task: Fixed WebGL context loss crash (Environment preset removed, context loss handler added)
+    files: [components/arena/Scene.tsx]
+  - task: Added terrain system (walls, lava, shrinking arena every 10 turns)
+    files: [lib/games/arena.ts, components/arena/Arena.tsx]
+  - task: Added combat enhancements (knockback, crits 15%, counter-attack on defend, combo decay)
+    files: [lib/games/arena.ts]
+  - task: Added 3 new actions (dash 2-tile move, heal 15HP x2 uses, charge 1.5x next attack)
+    files: [lib/games/arena.ts]
+  - task: Added 6 model-specific passives (Speed, Fortified, Regeneration, Evasion, Berserker, Unpredictable)
+    files: [lib/games/arena.ts]
+  - task: Added power-up pickups (heal/damage/shield, spawn every 8 turns)
+    files: [lib/games/arena.ts]
+  - task: Added 10 visual effect types (slash, shield, dust, heal, charge, dash trail, counter, crit damage numbers, projectile, impact)
+    files: [components/arena/ActionEffect.tsx, components/arena/Scene.tsx]
+  - task: Updated terrain rendering (raised wall boxes, glowing lava tiles, spinning power-up gems)
+    files: [components/arena/Arena.tsx]
+  - task: Updated Fighter with charge glow, passive label, dash/heal/charge animations
+    files: [components/arena/Fighter.tsx]
+  - task: Updated sidebar UI with passive names, status indicators, crit badges in log
+    files: [app/games/arena/page.tsx]
+
+blockers: []
+
+questions:
+  - Has the game been tested in browser after all changes? Need E2E verification
+  - Are LLMs using the new actions (dash, heal, charge) effectively with the updated prompts?
+
+decisions:
+  - removed_environment_preset: "Environment preset='night' loaded HDR from CDN, consumed GPU memory, caused context loss. Replaced with fog."
+  - no_trap_action: "Skipped 'place trap' action - too complex for LLMs to reason about hidden state"
+  - no_directional_facing: "Skipped facing mechanic - adds UI complexity without enough strategic depth for LLMs"
+  - powerup_spawn_interval_8: "Every 8 turns keeps map dynamic without overwhelming"
+  - shrink_interval_10: "Every 10 turns forces engagement by turn 30-40"
+
+findings:
+  - webgl_context_loss: "Chrome kills WebGL contexts under GPU pressure (many tabs). Must handle webglcontextlost event."
+  - actual_project_path: "Source is at /Users/donaldchu/dev/llmplayground, NOT /Users/donaldchu/dev/chatapp (dev server PID 67671)"
+  - zod_v4_compatible: "ai@6.0.77 works with zod@4.3.6 via Standard Schema"
+  - api_works: "Verified arena API returns correct structured output from Gemini models"
+
+worked:
+  - "Removing Environment preset fixed GPU memory pressure"
+  - "Canvas onCreated + webglcontextlost event for graceful recovery"
+  - "gl powerPreference low-power + antialias false reduces GPU load"
+  - "Discriminated union Effect type for clean effect rendering switch"
+
+failed: []
+
+next:
+  - Test full battle in browser to verify all mechanics render correctly
+  - Verify LLMs actually use new actions (dash, heal, charge) - may need prompt tuning
+  - Consider adding ELO ranking with persistence (needs database)
+  - Consider best-of-3 rounds mode
+  - The TurnResult type expanded (isCrit, knockback, counterDamage, dodged) - verify log entries render cleanly
+
+files:
+  modified:
+    - lib/games/arena.ts
+    - components/arena/Scene.tsx
+    - components/arena/Arena.tsx
+    - components/arena/ActionEffect.tsx
+    - components/arena/Fighter.tsx
+    - app/games/arena/page.tsx

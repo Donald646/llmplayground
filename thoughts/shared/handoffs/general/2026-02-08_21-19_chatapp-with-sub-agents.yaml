@@ -1,0 +1,99 @@
+---
+session: general
+date: 2026-02-08
+status: partial
+outcome: PARTIAL_PLUS
+---
+
+goal: Build modern AI chat app with Next.js + AI SDK + AI Elements, then add sub-agent orchestration
+now: Implement sub-agent orchestration pattern in app/api/chat/route.ts using tools-as-agents
+
+done_this_session:
+  - task: Scaffolded chat app with AI SDK, Google Gemini provider, and AI Elements components
+    files: [app/api/chat/route.ts, app/page.tsx, .env.local, app/globals.css, app/layout.tsx]
+  - task: Installed AI Elements (73 components) via bunx ai-elements@latest
+    files: [components/ai-elements/*, components/ui/*]
+  - task: Built full PromptInput with attachments, model selector, web search toggle, stop button
+    files: [app/page.tsx]
+  - task: Fixed AI Elements upstream type errors (schema-display.tsx, terminal.tsx)
+    files: [components/ai-elements/schema-display.tsx, components/ai-elements/terminal.tsx]
+  - task: Styled UI to match Kimi-like layout - heading + suggestions + bottom-pinned input
+    files: [app/page.tsx, components/ui/button.tsx, components/ui/input-group.tsx, app/globals.css]
+  - task: Added stop button functionality via onStop={stop} prop
+    files: [app/page.tsx]
+  - task: Updated models to Gemini 2.5 series (Flash, Flash Lite, Pro)
+    files: [app/page.tsx]
+
+blockers: []
+
+questions:
+  - How many sub-agents to create and what specializations? (research, code, analysis suggested)
+  - Should sub-agents use same or different Gemini models?
+  - Should tool call results from sub-agents be displayed differently in the UI?
+
+decisions:
+  - provider_choice: Google Gemini via @ai-sdk/google (user preference)
+  - component_library: AI Elements built on shadcn/ui for chat UI
+  - package_manager: bun (user preference)
+  - ui_layout: Kimi-style - centered heading/suggestions on empty state, bottom-pinned input
+  - input_style: Bottom-attached with rounded-b-none, no border-bottom (flush to viewport edge)
+  - radius_theme: Global --radius bumped to 0.875rem, buttons rounded-xl, input rounded-2xl
+
+findings:
+  - ai_elements_type_errors: AI Elements v latest has 2 upstream type errors in schema-display.tsx (dangerouslySetInnerHTML type) and terminal.tsx (Shimmer missing children prop). Fixed with String() cast and empty string child.
+  - tooltip_provider_required: PromptInputButton with tooltip prop requires TooltipProvider ancestor or SSR build fails
+  - stop_button_needs_onStop: PromptInputSubmit requires onStop prop to actually stop streaming - without it the stop icon shows but clicking does nothing
+  - prompt_input_header_padding: PromptInputHeader renders padding even when children return null - conditionally render the header only when attachments exist
+  - sub_agent_pattern: AI SDK supports tools-as-agents where tool execute() calls generateText() internally. The orchestrator model calls these tools, gets results, and synthesizes. Multi-step via stopWhen allows orchestration loop.
+
+worked:
+  - AI Elements CLI (bunx ai-elements@latest) installs all components cleanly
+  - useChat hook integrates well with AI Elements Conversation/Message/PromptInput
+  - Tool parts rendered via part.type.startsWith("tool-") catch-all
+  - CSS selector [&_[data-slot=input-group]] to target InputGroup styling from parent
+
+failed:
+  - PromptInput className prop goes to form, not InputGroup - can't directly style the visual box from PromptInput props
+  - ConversationEmptyState too rigid for Kimi-like layout - replaced with custom empty state div
+
+next:
+  - Add sub-agent orchestration to app/api/chat/route.ts using tools-as-agents pattern
+  - Create 3 specialist agent tools (research, code-analysis, creative-writing) that call generateText internally
+  - Update orchestrator system prompt to delegate to sub-agents for complex queries
+  - Show sub-agent activity in UI (chain-of-thought or tool display)
+  - Consider using AI Elements Reasoning component to show agent thinking
+  - Consider AI Elements ChainOfThought component for showing agent steps
+
+files:
+  created:
+    - app/api/chat/route.ts
+    - .env.local
+    - thoughts/shared/handoffs/general/2026-02-08_21-19_chatapp-with-sub-agents.yaml
+  modified:
+    - app/page.tsx
+    - app/globals.css
+    - app/layout.tsx
+    - components/ui/button.tsx
+    - components/ui/input-group.tsx
+    - components/ai-elements/schema-display.tsx
+    - components/ai-elements/terminal.tsx
+    - components/ai-elements/message.tsx
+
+architecture_note: |
+  Sub-agent pattern for next session:
+
+  route.ts orchestrator:
+    streamText({
+      model: google("gemini-2.5-flash"),
+      system: "You are an orchestrator. Delegate to specialist agents for complex tasks.",
+      stopWhen: stepCountIs(5),
+      tools: {
+        researchAgent: tool({ execute: () => generateText({...specialist prompt...}) }),
+        codeAgent: tool({ execute: () => generateText({...specialist prompt...}) }),
+        analysisAgent: tool({ execute: () => generateText({...specialist prompt...}) }),
+      }
+    })
+
+  Each tool's execute() calls generateText() with its own system prompt.
+  The orchestrator calls tools, reads results, synthesizes final response.
+  Multi-step allows: call agents → read results → call more agents → final answer.

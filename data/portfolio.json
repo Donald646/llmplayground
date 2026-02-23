@@ -1,0 +1,41 @@
+{
+  "positions": [
+    {
+      "marketId": "997488",
+      "question": "Will Trump acquire Greenland before 2027?",
+      "outcome": "No",
+      "tokenId": "57216272564529548464686463691236811991956032201293786790337952253964682584376",
+      "entryPrice": 0.885,
+      "currentPrice": 0.885,
+      "size": 50,
+      "unrealizedPnL": 0,
+      "entryTimestamp": "2026-02-11T13:22:49.092Z"
+    }
+  ],
+  "trades": [
+    {
+      "id": "paper_1770816169092_1",
+      "timestamp": "2026-02-11T13:22:49.092Z",
+      "marketId": "997488",
+      "question": "Will Trump acquire Greenland before 2027?",
+      "outcome": "No",
+      "side": "buy",
+      "price": 0.885,
+      "size": 50,
+      "signal": {
+        "marketId": "997488",
+        "question": "Will Trump acquire Greenland before 2027?",
+        "outcome": "No",
+        "tokenId": "57216272564529548464686463691236811991956032201293786790337952253964682584376",
+        "currentPrice": 0.885,
+        "fairValue": 0.025,
+        "edge": 0.08999999999999997,
+        "confidence": 0.9,
+        "reasoning": "The proposition of the United States acquiring Greenland has been explicitly and repeatedly rejected by both the government of Denmark and the autonomous government of Greenland. During his previous presidency, Donald Trump floated the idea, which was met with strong and unequivocal 'not for sale' responses. Sovereignty transfers of this magnitude are extremely rare in modern international relations, requiring immense political will, negotiation, and agreement from all parties, especially the selling nation and its constituent territory. The current stance of Denmark and Greenland makes any such agreement highly improbable. Even if Trump is re-elected and attempts to revive the idea, the fundamental obstacles (lack of consent from Denmark/Greenland, monumental financial cost, diplomatic fallout) remain. The market price of 11.5% for a 'Yes' outcome appears to significantly overestimate the likelihood of this event, which faces near-insurmountable political and diplomatic hurdles.",
+        "recommendation": "buy",
+        "suggestedSize": 0
+      }
+    }
+  ],
+  "cashBalance": 955.75
+}
