@@ -103,3 +103,10 @@ export interface RiskConfig {
   minEdge: number;
   minConfidence: number;
 }
+
+export const DEFAULT_RISK_CONFIG: RiskConfig = {
+  maxPositionSize: 50,
+  maxTotalExposure: 500,
+  minEdge: 0.05,
+  minConfidence: 0.6,
+};

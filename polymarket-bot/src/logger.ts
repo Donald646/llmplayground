@@ -14,10 +14,11 @@ function timestamp(): string {
 
 function log(level: LogLevel, message: string, data?: Record<string, unknown>) {
   const prefix = `${timestamp()} ${LEVEL_PREFIX[level]}`;
+  const out = level === "error" || level === "warn" ? console.error : console.log;
   if (data) {
-    console.log(`${prefix} ${message}`, JSON.stringify(data, null, 2));
+    out(`${prefix} ${message}`, JSON.stringify(data, null, 2));
   } else {
-    console.log(`${prefix} ${message}`);
+    out(`${prefix} ${message}`);
   }
 }
 

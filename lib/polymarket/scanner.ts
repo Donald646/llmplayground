@@ -1,7 +1,7 @@
 import type { Market, GammaEvent, GammaMarket, ScanConfig } from "./types";
 import { fetchActiveEvents } from "./api";
 
-function parseGammaMarket(gm: GammaMarket, event: GammaEvent): Market | null {
+export function parseGammaMarket(gm: GammaMarket, event: GammaEvent): Market | null {
   try {
     const outcomes = JSON.parse(gm.outcomes) as string[];
     const outcomePrices = JSON.parse(gm.outcomePrices) as string[];
@@ -29,7 +29,7 @@ function parseGammaMarket(gm: GammaMarket, event: GammaEvent): Market | null {
   }
 }
 
-function isMarketTradeable(market: Market, minVolume: number): boolean {
+export function isMarketTradeable(market: Market, minVolume: number): boolean {
   if (!market.active) return false;
   if (market.volume < minVolume) return false;
 

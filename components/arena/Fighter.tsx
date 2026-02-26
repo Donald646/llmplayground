@@ -4,9 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
-import type { Action } from "@/lib/games/arena";
-
-const GRID_SIZE = 10;
+import { GRID_SIZE, type Action } from "@/lib/games/arena";
 
 function gridToWorld(pos: { x: number; z: number }): THREE.Vector3 {
   return new THREE.Vector3(

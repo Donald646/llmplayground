@@ -9,8 +9,11 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "outDir": "dist",
-    "rootDir": "src",
-    "declaration": true
+    "rootDir": "..",
+    "declaration": true,
+    "paths": {
+      "@lib/polymarket/*": ["../lib/polymarket/*"]
+    }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "../lib/polymarket/**/*"]
 }

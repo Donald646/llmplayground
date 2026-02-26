@@ -1,7 +1,7 @@
 import { generateText, Output } from "ai";
 import { gateway } from "@ai-sdk/gateway";
 import { z } from "zod";
-import type { SharedTurnRequest, SharedTurnResponse } from "@/lib/games/wordle-shared-types";
+import type { SharedTurnRequest, SharedTurnResponse } from "@/lib/games/wordle-types";
 import { formatChatForPrompt } from "@/lib/games/wordle";
 import {
   getSharedWordleSystemPrompt,
@@ -23,31 +23,39 @@ const turnSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const body: SharedTurnRequest = await req.json();
+  try {
+    const body: SharedTurnRequest = await req.json();
 
-  const systemPrompt = getSharedWordleSystemPrompt(
-    body.modelName,
-    body.opponentModelName
-  );
+    const systemPrompt = getSharedWordleSystemPrompt(
+      body.modelName,
+      body.opponentModelName
+    );
 
-  const prompt = buildSharedTurnPrompt(
-    formatSharedBoardForPrompt(body.board),
-    formatChatForPrompt(body.chatHistory),
-    body.round,
-    body.totalRounds
-  );
+    const prompt = buildSharedTurnPrompt(
+      formatSharedBoardForPrompt(body.board),
+      formatChatForPrompt(body.chatHistory),
+      body.round,
+      body.totalRounds
+    );
 
-  const { output } = await generateText({
-    model: gateway(body.modelId),
-    system: systemPrompt,
-    prompt,
-    output: Output.object({ schema: turnSchema }),
-  });
+    const { output } = await generateText({
+      model: gateway(body.modelId),
+      system: systemPrompt,
+      prompt,
+      output: Output.object({ schema: turnSchema }),
+    });
 
-  const response: SharedTurnResponse = {
-    guess: (output?.guess ?? "AUDIO").toUpperCase().slice(0, 5),
-    message: output?.message ?? "",
-  };
+    if (!output?.guess) {
+      return Response.json({ error: "Model produced no guess" }, { status: 500 });
+    }
 
-  return Response.json(response);
+    const response: SharedTurnResponse = {
+      guess: output.guess.toUpperCase().slice(0, 5),
+      message: output.message ?? "",
+    };
+
+    return Response.json(response);
+  } catch (err) {
+    return Response.json({ error: String(err) }, { status: 500 });
+  }
 }

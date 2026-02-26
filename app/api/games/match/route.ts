@@ -25,7 +25,13 @@ function getGameDescription(gameType: string): string {
 }
 
 export async function POST(req: Request) {
-  const { gameType, modelA, modelB }: MatchRequest = await req.json();
+  let body: MatchRequest;
+  try {
+    body = await req.json();
+  } catch {
+    return new Response("Invalid request body", { status: 400 });
+  }
+  const { gameType, modelA, modelB } = body;
 
   const nameA = getModelName(modelA);
   const nameB = getModelName(modelB);

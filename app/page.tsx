@@ -63,7 +63,7 @@ import {
   PenIcon,
   LoaderIcon,
 } from "lucide-react";
-import Link from "next/link";
+import { AppNav } from "@/components/nav";
 import { useMemo, useState } from "react";
 
 const models = [
@@ -385,23 +385,7 @@ export default function Chat() {
   return (
     <TooltipProvider>
       <div className="flex h-dvh flex-col">
-        <nav className="flex items-center gap-4 border-b border-border/50 px-6 py-3">
-          <Link href="/" className="text-sm font-medium text-foreground">
-            Chat
-          </Link>
-          <Link
-            href="/games"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Games
-          </Link>
-          <Link
-            href="/markets"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Markets
-          </Link>
-        </nav>
+        <AppNav active="chat" />
         {isEmpty ? (
           <div className="flex flex-1 flex-col items-center justify-center px-4">
             <div className="w-full max-w-2xl space-y-8">

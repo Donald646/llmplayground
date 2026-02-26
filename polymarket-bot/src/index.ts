@@ -1,5 +1,5 @@
 import { loadConfig } from "./config.js";
-import { scanMarkets } from "./scanner.js";
+import { scanMarkets, parseGammaMarket } from "./scanner.js";
 import { analyzeMarket, analyzeMarkets } from "./analyst.js";
 import { evaluateSignal } from "./risk.js";
 import { executeTrade } from "./trader.js";
@@ -12,38 +12,6 @@ import {
 import { fetchEventBySlug } from "./api.js";
 import { logger } from "./logger.js";
 import type { Market, GammaEvent } from "./types.js";
-
-function parseGammaMarketFromEvent(event: GammaEvent): Market[] {
-  const markets: Market[] = [];
-  if (!event.markets) return markets;
-
-  for (const gm of event.markets) {
-    try {
-      const outcomes = JSON.parse(gm.outcomes) as string[];
-      const outcomePrices = JSON.parse(gm.outcomePrices) as string[];
-      const clobTokenIds = JSON.parse(gm.clobTokenIds) as string[];
-      if (outcomes.length !== 2 || clobTokenIds.length !== 2) continue;
-
-      markets.push({
-        id: gm.id,
-        question: gm.question,
-        slug: gm.slug,
-        outcomes,
-        outcomePrices: outcomePrices.map(Number),
-        volume: Number(gm.volume),
-        liquidity: Number(gm.liquidity),
-        endDate: gm.endDate,
-        clobTokenIds,
-        active: gm.active,
-        tags: event.tags?.map((t) => t.label) ?? [],
-        description: gm.description || event.description || "",
-      });
-    } catch {
-      // skip unparseable markets
-    }
-  }
-  return markets;
-}
 
 async function runScan() {
   const config = loadConfig();
@@ -63,7 +31,13 @@ async function runAnalyze(slug: string) {
 
   logger.info(`Fetching event: ${slug}`);
   const event = await fetchEventBySlug(slug);
-  const markets = parseGammaMarketFromEvent(event);
+  const markets: Market[] = [];
+  if (event.markets) {
+    for (const gm of event.markets) {
+      const market = parseGammaMarket(gm, event);
+      if (market) markets.push(market);
+    }
+  }
 
   if (markets.length === 0) {
     logger.error("No binary markets found for this event");

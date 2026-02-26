@@ -3,7 +3,7 @@ import type { GammaEvent, GammaMarket } from "./types";
 const GAMMA_BASE = "https://gamma-api.polymarket.com";
 const CLOB_BASE = "https://clob.polymarket.com";
 
-async function gammaGet<T>(path: string, params?: Record<string, string>): Promise<T> {
+export async function gammaGet<T>(path: string, params?: Record<string, string>): Promise<T> {
   const url = new URL(path, GAMMA_BASE);
   if (params) {
     for (const [key, value] of Object.entries(params)) {
@@ -17,7 +17,7 @@ async function gammaGet<T>(path: string, params?: Record<string, string>): Promi
   return res.json() as Promise<T>;
 }
 
-async function clobGet<T>(path: string, params?: Record<string, string>): Promise<T> {
+export async function clobGet<T>(path: string, params?: Record<string, string>): Promise<T> {
   const url = new URL(path, CLOB_BASE);
   if (params) {
     for (const [key, value] of Object.entries(params)) {

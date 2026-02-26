@@ -248,7 +248,8 @@ export default function ArenaPage() {
   }
 
   // --- Fighting / Complete Phase ---
-  const [fa, fb] = gameState!.fighters;
+  if (!gameState) return null;
+  const [fa, fb] = gameState.fighters;
   const isDraw = gameState?.winner === "draw";
   const winnerFighter = gameState?.winner && gameState.winner !== "draw"
     ? gameState.fighters[gameState.winner === "a" ? 0 : 1]

@@ -22,30 +22,38 @@ const turnSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const body: WordleTurnRequest = await req.json();
+  try {
+    const body: WordleTurnRequest = await req.json();
 
-  const systemPrompt = getWordleSystemPrompt(
-    body.myModelName,
-    body.opponentModelName
-  );
+    const systemPrompt = getWordleSystemPrompt(
+      body.myModelName,
+      body.opponentModelName
+    );
 
-  const prompt = buildTurnPrompt(
-    formatBoardForPrompt(body.myBoard),
-    formatChatForPrompt(body.chatHistory),
-    body.round
-  );
+    const prompt = buildTurnPrompt(
+      formatBoardForPrompt(body.myBoard),
+      formatChatForPrompt(body.chatHistory),
+      body.round
+    );
 
-  const { output } = await generateText({
-    model: gateway(body.modelId),
-    system: systemPrompt,
-    prompt,
-    output: Output.object({ schema: turnSchema }),
-  });
+    const { output } = await generateText({
+      model: gateway(body.modelId),
+      system: systemPrompt,
+      prompt,
+      output: Output.object({ schema: turnSchema }),
+    });
 
-  const response: WordleTurnResponse = {
-    guess: (output?.guess ?? "AUDIO").toUpperCase().slice(0, 5),
-    message: output?.message ?? "",
-  };
+    if (!output?.guess) {
+      return Response.json({ error: "Model produced no guess" }, { status: 500 });
+    }
 
-  return Response.json(response);
+    const response: WordleTurnResponse = {
+      guess: output.guess.toUpperCase().slice(0, 5),
+      message: output.message ?? "",
+    };
+
+    return Response.json(response);
+  } catch (err) {
+    return Response.json({ error: String(err) }, { status: 500 });
+  }
 }

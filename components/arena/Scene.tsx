@@ -17,7 +17,7 @@ import {
   DashTrail,
   CounterSlash,
 } from "./ActionEffect";
-import type { GameState, RoundResult, TurnResult } from "@/lib/games/arena";
+import { FIGHTER_A_COLOR, FIGHTER_B_COLOR, type GameState, type RoundResult, type TurnResult } from "@/lib/games/arena";
 
 interface SceneProps {
   gameState: GameState;
@@ -145,7 +145,7 @@ export default function Scene({
       lastRoundResult.resultA,
       gameState.fighters[0].position,
       gameState.fighters[1].position,
-      "#4488ff",
+      FIGHTER_A_COLOR,
       newEffects,
     );
 
@@ -154,7 +154,7 @@ export default function Scene({
       lastRoundResult.resultB,
       gameState.fighters[1].position,
       gameState.fighters[0].position,
-      "#ff4444",
+      FIGHTER_B_COLOR,
       newEffects,
     );
 
@@ -204,7 +204,7 @@ export default function Scene({
         shadow-mapSize-width={512}
         shadow-mapSize-height={512}
       />
-      <pointLight position={[-5, 5, -5]} intensity={0.3} color="#4488ff" />
+      <pointLight position={[-5, 5, -5]} intensity={0.3} color={FIGHTER_A_COLOR} />
 
       <ArenaFloor terrain={gameState.terrain} powerUps={gameState.powerUps} />
 
@@ -214,7 +214,7 @@ export default function Scene({
         hp={fa.hp}
         maxHp={fa.maxHp}
         name={fa.modelName}
-        color="#4488ff"
+        color={FIGHTER_A_COLOR}
         lastAction={lastActionA}
         isCurrentTurn={animatingTurn}
         onAnimationComplete={() => handleFighterAnimDone("a")}
@@ -228,7 +228,7 @@ export default function Scene({
         hp={fb.hp}
         maxHp={fb.maxHp}
         name={fb.modelName}
-        color="#ff4444"
+        color={FIGHTER_B_COLOR}
         lastAction={lastActionB}
         isCurrentTurn={animatingTurn}
         onAnimationComplete={() => handleFighterAnimDone("b")}

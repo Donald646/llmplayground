@@ -1,11 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import type { TileType, PowerUp } from "@/lib/games/arena";
-
-const GRID_SIZE = 10;
+import { GRID_SIZE, type TileType, type PowerUp } from "@/lib/games/arena";
 
 interface ArenaFloorProps {
   terrain?: TileType[][];
@@ -69,44 +67,47 @@ function PowerUpTile({ x, z, type }: { x: number; z: number; type: string }) {
 }
 
 export default function ArenaFloor({ terrain, powerUps }: ArenaFloorProps) {
-  const tiles = [];
-  for (let x = 0; x < GRID_SIZE; x++) {
-    for (let z = 0; z < GRID_SIZE; z++) {
-      const tileType = terrain?.[z]?.[x] ?? "empty";
+  const tiles = useMemo(() => {
+    const result = [];
+    for (let x = 0; x < GRID_SIZE; x++) {
+      for (let z = 0; z < GRID_SIZE; z++) {
+        const tileType = terrain?.[z]?.[x] ?? "empty";
 
-      if (tileType === "wall") {
-        tiles.push(
-          <mesh
-            key={`${x}-${z}`}
-            position={[x - GRID_SIZE / 2 + 0.5, 0.3, z - GRID_SIZE / 2 + 0.5]}
-            castShadow
-            receiveShadow
-          >
-            <boxGeometry args={[0.9, 0.6, 0.9]} />
-            <meshStandardMaterial color="#555566" roughness={0.9} metalness={0.1} />
-          </mesh>,
-        );
-      } else if (tileType === "lava") {
-        tiles.push(<LavaTile key={`${x}-${z}`} x={x} z={z} />);
-      } else {
-        const isLight = (x + z) % 2 === 0;
-        tiles.push(
-          <mesh
-            key={`${x}-${z}`}
-            position={[x - GRID_SIZE / 2 + 0.5, 0, z - GRID_SIZE / 2 + 0.5]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            receiveShadow
-          >
-            <planeGeometry args={[0.95, 0.95]} />
-            <meshStandardMaterial
-              color={isLight ? "#3a3a4a" : "#2d2d3d"}
-              roughness={0.8}
-            />
-          </mesh>,
-        );
+        if (tileType === "wall") {
+          result.push(
+            <mesh
+              key={`${x}-${z}`}
+              position={[x - GRID_SIZE / 2 + 0.5, 0.3, z - GRID_SIZE / 2 + 0.5]}
+              castShadow
+              receiveShadow
+            >
+              <boxGeometry args={[0.9, 0.6, 0.9]} />
+              <meshStandardMaterial color="#555566" roughness={0.9} metalness={0.1} />
+            </mesh>,
+          );
+        } else if (tileType === "lava") {
+          result.push(<LavaTile key={`${x}-${z}`} x={x} z={z} />);
+        } else {
+          const isLight = (x + z) % 2 === 0;
+          result.push(
+            <mesh
+              key={`${x}-${z}`}
+              position={[x - GRID_SIZE / 2 + 0.5, 0, z - GRID_SIZE / 2 + 0.5]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              receiveShadow
+            >
+              <planeGeometry args={[0.95, 0.95]} />
+              <meshStandardMaterial
+                color={isLight ? "#3a3a4a" : "#2d2d3d"}
+                roughness={0.8}
+              />
+            </mesh>,
+          );
+        }
       }
     }
-  }
+    return result;
+  }, [terrain]);
 
   return (
     <group>

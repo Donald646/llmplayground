@@ -31,17 +31,18 @@ export function isValidGuess(word: string): boolean {
   return /^[a-zA-Z]{5}$/.test(word);
 }
 
+export function renderFeedbackEmoji(feedback: TileFeedback[]): string {
+  return feedback
+    .map((f) => (f === "correct" ? "🟩" : f === "present" ? "🟨" : "⬛"))
+    .join("");
+}
+
 export function formatBoardForPrompt(guesses: WordleGuess[]): string {
   if (guesses.length === 0) return "(no guesses yet)";
   return guesses
     .map((g, i) => {
       const letters = g.word.split("").join(" ");
-      const fb = g.feedback
-        .map((f) =>
-          f === "correct" ? "🟩" : f === "present" ? "🟨" : "⬛"
-        )
-        .join("");
-      return `Round ${i + 1}: ${letters} → ${fb}`;
+      return `Round ${i + 1}: ${letters} → ${renderFeedbackEmoji(g.feedback)}`;
     })
     .join("\n");
 }

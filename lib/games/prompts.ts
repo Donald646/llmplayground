@@ -25,6 +25,10 @@ SIDE B: Against`;
 3. ACRONYM GAME: Give a random made-up 4-5 letter acronym and ask contestants to create the most creative/funny expansion.
 
 State clearly which challenge type you've chosen and the specific prompt.`;
+    default: {
+      const _exhaustive: never = gameType;
+      throw new Error(`Unhandled game type: ${_exhaustive}`);
+    }
   }
 }
 
@@ -41,6 +45,10 @@ export function getPlayerPrompt(
 
     case "word-games":
       return `You are competing in a creative word game. Complete the challenge with maximum creativity, cleverness, and flair. The more creative and surprising, the better.`;
+    default: {
+      const _exhaustive: never = gameType;
+      throw new Error(`Unhandled game type: ${_exhaustive}`);
+    }
   }
 }
 

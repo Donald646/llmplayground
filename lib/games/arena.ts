@@ -81,7 +81,7 @@ export interface GameState {
 
 // --- Constants ---
 
-const GRID_SIZE = 10;
+export const GRID_SIZE = 10;
 const ATTACK_MIN = 15;
 const ATTACK_MAX = 25;
 const SPECIAL_MIN = 10;
@@ -102,6 +102,20 @@ const WALL_KNOCKBACK_DAMAGE = 5;
 const SHRINK_INTERVAL = 10;
 const POWERUP_SPAWN_INTERVAL = 4;
 export const MAX_ROUNDS = 25;
+
+export const FIGHTER_A_COLOR = "#4488ff";
+export const FIGHTER_B_COLOR = "#ff4444";
+
+// --- Passive Names ---
+
+const PASSIVE = {
+  SPEED: "Speed",
+  FORTIFIED: "Fortified",
+  REGENERATION: "Regeneration",
+  EVASION: "Evasion",
+  BERSERKER: "Berserker",
+  UNPREDICTABLE: "Unpredictable",
+} as const;
 
 // --- Model Passives ---
 
@@ -287,12 +301,12 @@ function computeAttackDamage(
   }
 
   if (Math.random() < CRIT_CHANCE) {
-    const critMult = attacker.passive.name === "Berserker" ? 3 : CRIT_MULTIPLIER;
+    const critMult = attacker.passive.name === PASSIVE.BERSERKER ? 3 : CRIT_MULTIPLIER;
     d = Math.floor(d * critMult);
     isCrit = true;
   }
 
-  if (attacker.passive.name === "Unpredictable" && Math.random() < 0.2) {
+  if (attacker.passive.name === PASSIVE.UNPREDICTABLE && Math.random() < 0.2) {
     d += 10;
   }
 
@@ -310,7 +324,7 @@ function applyDefenses(
 ): DefenseResult {
   let d = damage;
 
-  if (defender.passive.name === "Evasion" && Math.random() < 0.15) {
+  if (defender.passive.name === PASSIVE.EVASION && Math.random() < 0.15) {
     return { finalDamage: 0, dodged: true };
   }
 
@@ -322,7 +336,7 @@ function applyDefenses(
     d = Math.floor(d * 0.5);
   }
 
-  if (defender.passive.name === "Fortified") {
+  if (defender.passive.name === PASSIVE.FORTIFIED) {
     d = Math.floor(d * 0.9);
   }
 
@@ -397,7 +411,7 @@ function resolveMovement(
   if (type === "dash" && fighter.dashCooldown > 0) return { ...fighter.position };
 
   const dir = action.direction ?? "north";
-  const steps = type === "move" && fighter.passive.name === "Speed" ? 2 : type === "dash" ? 2 : 1;
+  const steps = type === "move" && fighter.passive.name === PASSIVE.SPEED ? 2 : type === "dash" ? 2 : 1;
   const pos = { ...fighter.position };
 
   for (let s = 0; s < steps; s++) {
@@ -561,7 +575,7 @@ export function applyRound(
     f.defending = false;
     if (f.specialCooldown > 0) f.specialCooldown--;
     if (f.dashCooldown > 0) f.dashCooldown--;
-    if (f.passive.name === "Regeneration" && f.hp < f.maxHp) {
+    if (f.passive.name === PASSIVE.REGENERATION && f.hp < f.maxHp) {
       f.hp = Math.min(f.maxHp, f.hp + 3);
     }
   }
@@ -661,7 +675,7 @@ export function applyRound(
       }
 
       const dir = actionA.direction ?? "north";
-      const steps = actionA.type === "move" && fA.passive.name === "Speed" ? 2 : isDash ? 2 : 1;
+      const steps = actionA.type === "move" && fA.passive.name === PASSIVE.SPEED ? 2 : isDash ? 2 : 1;
       if (fA.position.x === origPosA.x && fA.position.z === origPosA.z) {
         narrA = `${fA.modelName} tried to ${isDash ? "dash" : "move"} ${dir} but the path is blocked!`;
       } else if (!narrA) {
@@ -686,7 +700,7 @@ export function applyRound(
       }
 
       const dir = actionB.direction ?? "north";
-      const steps = actionB.type === "move" && fB.passive.name === "Speed" ? 2 : isDash ? 2 : 1;
+      const steps = actionB.type === "move" && fB.passive.name === PASSIVE.SPEED ? 2 : isDash ? 2 : 1;
       if (fB.position.x === origPosB.x && fB.position.z === origPosB.z) {
         narrB = `${fB.modelName} tried to ${isDash ? "dash" : "move"} ${dir} but the path is blocked!`;
       } else if (!narrB) {

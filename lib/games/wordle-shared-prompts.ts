@@ -1,4 +1,5 @@
-import type { SharedGuess, ChatMessage } from "./wordle-shared-types";
+import type { SharedGuess } from "./wordle-types";
+import { renderFeedbackEmoji } from "./wordle";
 
 export function getSharedWordleSystemPrompt(
   myName: string,
@@ -24,12 +25,7 @@ export function formatSharedBoardForPrompt(guesses: SharedGuess[]): string {
   return guesses
     .map((g, i) => {
       const letters = g.word.split("").join(" ");
-      const fb = g.feedback
-        .map((f) =>
-          f === "correct" ? "🟩" : f === "present" ? "🟨" : "⬛"
-        )
-        .join("");
-      return `Round ${i + 1} (${g.modelName}): ${letters} → ${fb}`;
+      return `Round ${i + 1} (${g.modelName}): ${letters} → ${renderFeedbackEmoji(g.feedback)}`;
     })
     .join("\n");
 }

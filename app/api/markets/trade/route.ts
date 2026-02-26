@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { evaluateSignal } from "@/lib/polymarket/risk";
 import { loadPortfolio, executePaperTrade } from "@/lib/polymarket/portfolio";
-import type { TradingSignal } from "@/lib/polymarket/types";
+import { DEFAULT_RISK_CONFIG, type TradingSignal } from "@/lib/polymarket/types";
 
 export async function POST(req: Request) {
   const { signal } = (await req.json()) as { signal: TradingSignal };
@@ -15,12 +15,7 @@ export async function POST(req: Request) {
 
   const portfolio = loadPortfolio();
 
-  const decision = evaluateSignal(signal, portfolio, {
-    maxPositionSize: 50,
-    maxTotalExposure: 500,
-    minEdge: 0.05,
-    minConfidence: 0.6,
-  });
+  const decision = evaluateSignal(signal, portfolio, DEFAULT_RISK_CONFIG);
 
   if (!decision.approved) {
     return NextResponse.json({

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
+import { AppNav } from "@/components/nav";
 import {
   BrainIcon,
   SwordsIcon,
@@ -346,17 +347,7 @@ export default function GamesPage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <nav className="flex items-center gap-4 border-b border-border/50 px-6 py-3">
-        <Link
-          href="/"
-          className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Chat
-        </Link>
-        <Link href="/games" className="text-sm font-medium text-foreground">
-          Games
-        </Link>
-      </nav>
+      <AppNav active="games" />
 
       {tournamentStatus === "selecting" && (
         <div className="flex flex-1 flex-col items-center justify-center px-4">
@@ -410,7 +401,7 @@ export default function GamesPage() {
                 Start Tournament
               </button>
               <span className="text-xs text-muted-foreground">
-                4 models &middot; 6 matches &middot; Round Robin
+                {models.length} models &middot; {models.length * (models.length - 1) / 2} matches &middot; Round Robin
               </span>
             </div>
 
@@ -484,7 +475,7 @@ export default function GamesPage() {
                     Tournament in Progress
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Match {Math.min(completedCount + 1, 6)} of 6
+                    Match {Math.min(completedCount + 1, matches.length)} of {matches.length}
                   </p>
                 </div>
               )}
@@ -501,7 +492,7 @@ export default function GamesPage() {
             </button>
           </div>
 
-          <Progress value={(completedCount / 6) * 100} className="mb-6" />
+          <Progress value={matches.length > 0 ? (completedCount / matches.length) * 100 : 0} className="mb-6" />
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
             <div className="space-y-3">

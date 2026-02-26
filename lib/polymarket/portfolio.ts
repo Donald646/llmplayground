@@ -32,22 +32,23 @@ export function addTrade(
 ): PortfolioState {
   const cost = trade.price * trade.size;
 
-  portfolio.trades.push(trade);
+  const updated: PortfolioState = {
+    ...portfolio,
+    trades: [...portfolio.trades, trade],
+    positions: [...portfolio.positions],
+    cashBalance: trade.side === "buy"
+      ? portfolio.cashBalance - cost
+      : portfolio.cashBalance + cost,
+  };
 
-  if (trade.side === "buy") {
-    portfolio.cashBalance -= cost;
-  } else {
-    portfolio.cashBalance += cost;
-  }
-
-  const existing = portfolio.positions.findIndex(
+  const existing = updated.positions.findIndex(
     (p) => p.marketId === trade.marketId && p.outcome === trade.outcome,
   );
 
   if (existing >= 0 && trade.side === "sell") {
-    portfolio.positions.splice(existing, 1);
+    updated.positions.splice(existing, 1);
   } else if (trade.side === "buy") {
-    portfolio.positions.push({
+    updated.positions.push({
       marketId: trade.marketId,
       question: trade.question,
       outcome: trade.outcome,
@@ -60,7 +61,7 @@ export function addTrade(
     });
   }
 
-  return portfolio;
+  return updated;
 }
 
 let tradeCounter = 0;
@@ -90,7 +91,8 @@ export function executePaperTrade(
 export async function refreshPositionPrices(
   portfolio: PortfolioState,
 ): Promise<PortfolioState> {
-  for (const position of portfolio.positions) {
+  const positions = portfolio.positions.map((pos) => ({ ...pos }));
+  for (const position of positions) {
     try {
       const mid = await fetchMidpoint(position.tokenId);
       position.currentPrice = mid;
@@ -99,5 +101,5 @@ export async function refreshPositionPrices(
       // Keep existing price on error
     }
   }
-  return portfolio;
+  return { ...portfolio, positions };
 }

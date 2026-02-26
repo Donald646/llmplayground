@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
+import { AppNav } from "@/components/nav";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { MessageResponse } from "@/components/ai-elements/message";
@@ -17,8 +17,9 @@ import {
   BrainIcon,
 } from "lucide-react";
 import type { Market, TradingSignal, PortfolioState } from "@/lib/polymarket/types";
+import type { Model } from "@/lib/games/types";
 
-const models = [
+const models: Model[] = [
   { id: "google/gemini-2.5-flash", name: "Gemini 2.5 Flash" },
   { id: "anthropic/claude-sonnet-4.5", name: "Claude Sonnet 4.5" },
   { id: "openai/gpt-4o", name: "GPT-4o" },
@@ -326,6 +327,7 @@ export default function MarketsPage() {
   const [analyzingIds, setAnalyzingIds] = useState<Set<string>>(new Set());
   const [scanning, setScanning] = useState(false);
   const [selectedModel, setSelectedModel] = useState(models[0].id);
+  const [tradeError, setTradeError] = useState<string | null>(null);
 
   const fetchMarkets = useCallback(async () => {
     setScanning(true);
@@ -342,7 +344,7 @@ export default function MarketsPage() {
 
   const fetchPortfolio = useCallback(async () => {
     try {
-      const res = await fetch("/api/markets/portfolio", { method: "POST" });
+      const res = await fetch("/api/markets/portfolio");
       const data = await res.json();
       setPortfolio(data);
     } catch (err) {
@@ -381,6 +383,7 @@ export default function MarketsPage() {
   };
 
   const handleTrade = async (signal: TradingSignal) => {
+    setTradeError(null);
     try {
       const res = await fetch("/api/markets/trade", {
         method: "POST",
@@ -392,32 +395,17 @@ export default function MarketsPage() {
         setPortfolio(result.portfolio);
       }
       if (!result.traded) {
-        alert(`Trade rejected: ${result.reason}`);
+        setTradeError(`Trade rejected: ${result.reason}`);
       }
     } catch (err) {
       console.error("Trade failed:", err);
+      setTradeError("Trade failed. Check console for details.");
     }
   };
 
   return (
     <div className="flex h-dvh flex-col">
-      <nav className="flex items-center gap-4 border-b border-border/50 px-6 py-3">
-        <Link
-          href="/"
-          className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Chat
-        </Link>
-        <Link
-          href="/games"
-          className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Games
-        </Link>
-        <Link href="/markets" className="text-sm font-medium text-foreground">
-          Markets
-        </Link>
-      </nav>
+      <AppNav active="markets" />
 
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-3xl px-4 py-6">
@@ -427,6 +415,19 @@ export default function MarketsPage() {
               Paper Trading
             </Badge>
           </div>
+
+          {tradeError && (
+            <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">
+              {tradeError}
+              <button
+                type="button"
+                onClick={() => setTradeError(null)}
+                className="ml-2 text-red-300 underline hover:text-red-200"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
           <Tabs defaultValue="markets">
             <TabsList>

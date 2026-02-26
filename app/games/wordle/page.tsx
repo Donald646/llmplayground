@@ -1,20 +1,18 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import Link from "next/link";
+import { useState, useCallback, useRef } from "react";
+import { AppNav } from "@/components/nav";
 import {
   LoaderIcon,
   TrophyIcon,
   ArrowLeftIcon,
-  HashIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { MessageResponse } from "@/components/ai-elements/message";
+import { WordleTile } from "@/components/games/WordleTile";
+import { ChatPanel } from "@/components/games/ChatPanel";
 import { models } from "@/lib/games/types";
 import { computeFeedback, isValidGuess } from "@/lib/games/wordle";
 import type {
-  TileFeedback,
-  WordleGuess,
   BoardState,
   ChatMessage,
   WordleTurnRequest,
@@ -22,31 +20,6 @@ import type {
 } from "@/lib/games/wordle-types";
 
 type GameStatus = "setup" | "playing" | "finished";
-
-function WordleTile({
-  letter,
-  feedback,
-}: {
-  letter?: string;
-  feedback?: TileFeedback;
-}) {
-  const bg =
-    feedback === "correct"
-      ? "bg-green-500 text-white border-green-500"
-      : feedback === "present"
-        ? "bg-yellow-500 text-white border-yellow-500"
-        : feedback === "absent"
-          ? "bg-neutral-700 text-white border-neutral-700"
-          : "border-border/50 bg-muted/20";
-
-  return (
-    <div
-      className={`flex h-12 w-12 items-center justify-center rounded-lg border-2 text-base font-bold uppercase transition-colors duration-300 ${bg}`}
-    >
-      {letter ?? ""}
-    </div>
-  );
-}
 
 function WordleBoard({
   board,
@@ -89,47 +62,6 @@ function WordleBoard({
         )}
       </div>
       <div className="flex flex-col gap-1.5">{rows}</div>
-    </div>
-  );
-}
-
-function ChatPanel({ messages }: { messages: ChatMessage[] }) {
-  const endRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
-
-  return (
-    <div className="flex h-full flex-col rounded-xl border border-border/50 bg-muted/20">
-      <div className="border-b border-border/50 px-3 py-2">
-        <span className="text-xs font-semibold">Trash Talk</span>
-      </div>
-      <div className="flex-1 overflow-y-auto px-3 py-2">
-        {messages.length === 0 && (
-          <p className="text-xs text-muted-foreground italic">
-            Models will chat here...
-          </p>
-        )}
-        {messages.map((m, i) => (
-          <div key={i} className="mb-2">
-            <div className="flex items-baseline gap-1.5">
-              <Badge variant="outline" className="shrink-0 text-[10px]">
-                {m.modelName}
-              </Badge>
-              <span className="text-[10px] text-muted-foreground">
-                R{m.round}
-              </span>
-            </div>
-            <div className="mt-0.5 pl-1">
-              <MessageResponse className="text-xs">
-                {m.text}
-              </MessageResponse>
-            </div>
-          </div>
-        ))}
-        <div ref={endRef} />
-      </div>
     </div>
   );
 }
@@ -243,10 +175,13 @@ export default function WordlePage() {
     };
 
     // Fire both loops independently — they run at their own pace
-    await Promise.allSettled([
+    const results = await Promise.allSettled([
       runModelLoop(modelAId, modelAName, modelBName, bA, setBoardA, setIsThinkingA),
       runModelLoop(modelBId, modelBName, modelAName, bB, setBoardB, setIsThinkingB),
     ]);
+    for (const r of results) {
+      if (r.status === "rejected") console.error("Model loop error:", r.reason);
+    }
 
     // Both loops done — determine winner
     if (bA.solved && bB.solved) {
@@ -285,22 +220,7 @@ export default function WordlePage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      {/* Nav */}
-      <nav className="flex items-center gap-4 border-b border-border/50 px-6 py-3">
-        <Link
-          href="/"
-          className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Chat
-        </Link>
-        <Link
-          href="/games"
-          className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Games
-        </Link>
-        <span className="text-sm font-medium text-foreground">Wordle</span>
-      </nav>
+      <AppNav active="games" currentLabel="Wordle" />
 
       {/* Setup */}
       {status === "setup" && (
@@ -446,7 +366,7 @@ export default function WordlePage() {
             <WordleBoard board={boardA} isActive={isThinkingA} />
             <WordleBoard board={boardB} isActive={isThinkingB} />
             <div className="min-h-[400px]">
-              <ChatPanel messages={chatLog} />
+              <ChatPanel title="Trash Talk" messages={chatLog} />
             </div>
           </div>
         </div>
